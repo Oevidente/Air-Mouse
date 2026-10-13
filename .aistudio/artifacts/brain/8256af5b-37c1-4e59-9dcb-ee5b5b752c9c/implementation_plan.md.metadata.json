@@ -1,0 +1,6 @@
+{
+  "summary": "Plano de implementação para o relatório de QA do Air Mouse: eliminação de atalhos duplicados com limpeza de banco de dados, persistência abrangente de todas as configurações do usuário em armazenamento local durável, adição de switch configurável para controles de apresentação de slides com ocultação dinâmica da aba de mídia por padrão, e renomeação completa do aplicativo para Air Mouse em todo o projeto.",
+  "updatedAt": "2026-10-13T02:48:41.726226062Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

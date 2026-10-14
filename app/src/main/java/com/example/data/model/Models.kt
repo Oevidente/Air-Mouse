@@ -5,6 +5,12 @@ enum class AirMouseMode {
     TOGGLE
 }
 
+enum class OneHandedMode {
+    OFF,        // Padrão / Ambas as Mãos
+    RIGHT_HAND, // Destro (Otimizado para mão direita)
+    LEFT_HAND   // Canhoto (Otimizado para mão esquerda)
+}
+
 enum class RemoteTab {
     AIR_MOUSE,
     MEDIA_CONTROLS,

@@ -3,6 +3,7 @@ package com.example.data.local
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.data.model.AirMouseMode
+import com.example.data.model.OneHandedMode
 
 class UserPreferencesManager(context: Context) {
 
@@ -20,6 +21,7 @@ class UserPreferencesManager(context: Context) {
         private const val KEY_UDP_PORT = "udp_port"
         private const val KEY_TCP_PORT = "tcp_port"
         private const val KEY_AIR_MOUSE_MODE = "air_mouse_mode"
+        private const val KEY_ONE_HANDED_MODE = "one_handed_mode"
 
         const val DEFAULT_GYRO_SENSITIVITY = 2.4f
         const val DEFAULT_TOUCHPAD_SENSITIVITY = 1.6f
@@ -78,4 +80,15 @@ class UserPreferencesManager(context: Context) {
             }
         }
         set(value) = prefs.edit().putString(KEY_AIR_MOUSE_MODE, value.name).apply()
+
+    var oneHandedMode: OneHandedMode
+        get() {
+            val name = prefs.getString(KEY_ONE_HANDED_MODE, OneHandedMode.OFF.name)
+            return try {
+                OneHandedMode.valueOf(name ?: OneHandedMode.OFF.name)
+            } catch (e: Exception) {
+                OneHandedMode.OFF
+            }
+        }
+        set(value) = prefs.edit().putString(KEY_ONE_HANDED_MODE, value.name).apply()
 }

@@ -1,6 +1,6 @@
 {
-  "summary": "Plano de implementação para o relatório de QA do Air Mouse: eliminação de atalhos duplicados com limpeza de banco de dados, persistência abrangente de todas as configurações do usuário em armazenamento local durável, adição de switch configurável para controles de apresentação de slides com ocultação dinâmica da aba de mídia por padrão, e renomeação completa do aplicativo para Air Mouse em todo o projeto.",
-  "updatedAt": "2026-10-13T02:48:41.726226062Z",
+  "summary": "Plano detalhado para implementação da função de teclado integrado na aba de Atalhos do Air Mouse. Inclui barra de digitação rápida com modo duplo (ao vivo vs. envio em lote com Enter), toolbar tátil de teclas essenciais (Esc, Tab, Espaço, Backspace, Enter e Setas direcionais) com haptics, integração direta ao protocolo TCP e geração do APK v1.0.4 na pasta /apk/.",
+  "updatedAt": "2026-10-13T18:35:59.915477978Z",
   "requestFeedback": true,
   "userFacing": true
 }

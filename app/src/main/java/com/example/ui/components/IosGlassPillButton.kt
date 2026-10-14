@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +50,9 @@ fun IosGlassPillButton(
     heightDp: Dp = 155.dp,
     testTag: String = "ios_glass_pill_button",
     onPressDown: (() -> Unit)? = null,
-    onPressUp: (() -> Unit)? = null
+    onPressUp: (() -> Unit)? = null,
+    horizontal: Boolean = false,
+    cornerRadiusDp: Dp = 28.dp
 ) {
     var isPressed by remember { mutableStateOf(false) }
 
@@ -59,7 +62,7 @@ fun IosGlassPillButton(
         label = "pillScale"
     )
 
-    val shape = RoundedCornerShape(44.dp)
+    val shape = RoundedCornerShape(cornerRadiusDp)
 
     Box(
         modifier = modifier
@@ -75,9 +78,9 @@ fun IosGlassPillButton(
                         ),
                         radius = size.maxDimension * 0.7f
                     ),
-                    topLeft = Offset(0f, 6.dp.toPx()),
+                    topLeft = Offset(0f, 4.dp.toPx()),
                     size = size,
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(44.dp.toPx())
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadiusDp.toPx())
                 )
             }
             .clip(shape)
@@ -91,7 +94,7 @@ fun IosGlassPillButton(
                 )
             )
             .border(
-                width = 1.6.dp,
+                width = 1.4.dp,
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         GlassRimHighlight.copy(alpha = if (isPressed) 0.95f else 0.75f),
@@ -121,27 +124,48 @@ fun IosGlassPillButton(
                     else -> false
                 }
             }
-            .padding(16.dp),
+            .padding(horizontal = if (horizontal) 12.dp else 6.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            IosMouseIcon(
-                highlight = highlight,
-                sizeDp = 34.dp
-            )
+        if (horizontal) {
+            androidx.compose.foundation.layout.Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IosMouseIcon(
+                    highlight = highlight,
+                    sizeDp = 22.dp
+                )
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = label,
+                    color = if (isPressed) Color.White else IosTextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.2.sp
+                )
+            }
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                IosMouseIcon(
+                    highlight = highlight,
+                    sizeDp = 28.dp
+                )
 
-            Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = label,
-                color = if (isPressed) Color.White else IosTextSecondary,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 0.2.sp
-            )
+                Text(
+                    text = label,
+                    color = if (isPressed) Color.White else IosTextSecondary,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.2.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
         }
     }
 }

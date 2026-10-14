@@ -21,6 +21,7 @@ import com.example.ui.theme.MouseBodyBase
 enum class MouseButtonHighlight {
     LEFT,
     RIGHT,
+    MIDDLE,
     NONE
 }
 
@@ -115,7 +116,55 @@ fun IosMouseIcon(
                     )
                 )
             }
+            MouseButtonHighlight.MIDDLE -> {
+                // Highlight middle button area
+            }
             MouseButtonHighlight.NONE -> {}
         }
+
+        // Draw physical Scroll Wheel (Middle Click) in center
+        val wheelWidth = w * 0.20f
+        val wheelHeight = buttonHeight * 0.55f
+        val wheelX = (w - wheelWidth) / 2f
+        val wheelY = buttonHeight * 0.22f
+        val wheelCorner = wheelWidth * 0.42f
+
+        val isMiddleActive = highlight == MouseButtonHighlight.MIDDLE
+
+        // Wheel background fill
+        drawRoundRect(
+            brush = if (isMiddleActive) {
+                Brush.verticalGradient(listOf(MouseActiveHighlight, AccentIceBlue))
+            } else {
+                Brush.verticalGradient(listOf(Color(0xFF263348), Color(0xFF0F1520)))
+            },
+            topLeft = Offset(wheelX, wheelY),
+            size = Size(wheelWidth, wheelHeight),
+            cornerRadius = CornerRadius(wheelCorner, wheelCorner)
+        )
+
+        // Wheel border
+        drawRoundRect(
+            color = if (isMiddleActive) Color.White else GlassRimHighlight.copy(alpha = 0.8f),
+            topLeft = Offset(wheelX, wheelY),
+            size = Size(wheelWidth, wheelHeight),
+            cornerRadius = CornerRadius(wheelCorner, wheelCorner),
+            style = Stroke(width = 1.2.dp.toPx())
+        )
+
+        // Wheel textured ridges
+        val ridgeColor = if (isMiddleActive) Color(0xFF0C1322) else GlassRimHighlight.copy(alpha = 0.6f)
+        drawLine(
+            color = ridgeColor,
+            start = Offset(wheelX + 1.5.dp.toPx(), wheelY + wheelHeight * 0.33f),
+            end = Offset(wheelX + wheelWidth - 1.5.dp.toPx(), wheelY + wheelHeight * 0.33f),
+            strokeWidth = 1.dp.toPx()
+        )
+        drawLine(
+            color = ridgeColor,
+            start = Offset(wheelX + 1.5.dp.toPx(), wheelY + wheelHeight * 0.66f),
+            end = Offset(wheelX + wheelWidth - 1.5.dp.toPx(), wheelY + wheelHeight * 0.66f),
+            strokeWidth = 1.dp.toPx()
+        )
     }
 }

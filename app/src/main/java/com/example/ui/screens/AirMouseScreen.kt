@@ -29,11 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.model.OneHandedMode
 import com.example.ui.components.IosGlassPillButton
 import com.example.ui.components.IosGyroRadarOrb
+import com.example.ui.components.IosScrollStrip
 import com.example.ui.components.IosSensitivityCard
 import com.example.ui.components.IosTopBar
 import com.example.ui.components.MouseButtonHighlight
+import com.example.ui.components.OneHandedMouseButtons
 import com.example.ui.components.OrbitalGyroIcon
 import com.example.ui.theme.AccentIceBlue
 import com.example.ui.theme.GlassRimHighlight
@@ -51,28 +54,34 @@ fun AirMouseScreen(
     onRecalibrate: () -> Unit,
     onSensitivityChange: (Float) -> Unit,
     onLeftClick: () -> Unit,
+    onMiddleClick: () -> Unit,
     onRightClick: () -> Unit,
+    onScroll: (dy: Int, dx: Int) -> Unit,
     onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    oneHandedMode: OneHandedMode = OneHandedMode.OFF,
+    onCycleOneHandedMode: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = 14.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // 1. Top Floating Pill
+        // 1. Top Floating Pill with Connection + One-Handed quick toggle
         IosTopBar(
             title = "Air Mouse",
             isConnected = isConnected,
             onSettingsClick = onSettingsClick,
+            oneHandedMode = oneHandedMode,
+            onCycleOneHandedMode = onCycleOneHandedMode,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // 2. Gyroscope Sensitivity Card (in the same iOS liquid glass style)
+        // 2. Gyroscope Sensitivity Card
         IosSensitivityCard(
             title = "Sensibilidade do Giroscópio",
             subtitle = "Velocidade de movimento no ar",
@@ -82,7 +91,7 @@ fun AirMouseScreen(
             testTag = "gyro_sensitivity_slider"
         )
 
-        // 3. Center Spherical Gyroscope Radar Orb
+        // 3. Center Section: Gyroscope Radar Orb + Integrated Vertical Scroll Strip
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -90,34 +99,61 @@ fun AirMouseScreen(
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            IosGyroRadarOrb(
-                isAirMouseActive = isAirMouseActive,
-                tiltX = tiltX,
-                tiltY = tiltY,
-                onToggleAirMouse = onToggleAirMouse,
-                sizeDp = 260.dp
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // If Left-Handed mode, place Scroll Strip on the left
+                if (oneHandedMode == OneHandedMode.LEFT_HAND) {
+                    IosScrollStrip(
+                        onScroll = onScroll,
+                        onMiddleClick = onMiddleClick,
+                        heightDp = 220.dp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Center Spherical Gyroscope Radar Orb
+                IosGyroRadarOrb(
+                    isAirMouseActive = isAirMouseActive,
+                    tiltX = tiltX,
+                    tiltY = tiltY,
+                    onToggleAirMouse = onToggleAirMouse,
+                    sizeDp = if (oneHandedMode == OneHandedMode.OFF) 240.dp else 230.dp
+                )
+
+                // If Right-Handed or Default mode, place Scroll Strip on the right
+                if (oneHandedMode != OneHandedMode.LEFT_HAND) {
+                    IosScrollStrip(
+                        onScroll = onScroll,
+                        onMiddleClick = onMiddleClick,
+                        heightDp = 220.dp,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Subtitle with Gyro Icon & Recalibrate button
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                OrbitalGyroIcon(modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
+                OrbitalGyroIcon(modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = if (isAirMouseActive) "Aponte o celular no ar para mover o cursor"
-                    else "Air Mouse pausado • Toque para ativar",
+                    text = if (isAirMouseActive) "Aponte o celular no ar • Use a barra lateral para rolar"
+                    else "Air Mouse pausado • Toque no orbe para ativar",
                     color = if (isAirMouseActive) IosTextSecondary else Color(0xFFFBBF24),
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Recalibrate pill button
             Box(
@@ -126,7 +162,7 @@ fun AirMouseScreen(
                     .background(Color(0xFF141C2B).copy(alpha = 0.8f))
                     .border(1.dp, GlassRimHighlight.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
                     .clickable(onClick = onRecalibrate)
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 5.dp)
                     .testTag("btn_recalibrate_gyro"),
                 contentAlignment = Alignment.Center
             ) {
@@ -135,9 +171,9 @@ fun AirMouseScreen(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Recalibrar Centro",
                         tint = AccentIceBlue,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(5.dp))
                     Text(
                         text = "Recalibrar Centro",
                         color = AccentIceBlue,
@@ -148,30 +184,15 @@ fun AirMouseScreen(
             }
         }
 
-        // 4. Bottom Big Glass Pill Buttons (Clique Esquerdo & Clique Direito)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            IosGlassPillButton(
-                label = "Clique Esquerdo",
-                highlight = MouseButtonHighlight.LEFT,
-                onClick = onLeftClick,
-                heightDp = 145.dp,
-                testTag = "btn_left_click_giant",
-                modifier = Modifier.weight(1f)
-            )
-
-            IosGlassPillButton(
-                label = "Clique Direito",
-                highlight = MouseButtonHighlight.RIGHT,
-                onClick = onRightClick,
-                heightDp = 145.dp,
-                testTag = "btn_right_click_giant",
-                modifier = Modifier.weight(1f)
-            )
-        }
+        // 4. Ergonomic Mouse Buttons: Adapts to One-Handed Mode for large phones
+        OneHandedMouseButtons(
+            onLeftClick = onLeftClick,
+            onMiddleClick = onMiddleClick,
+            onRightClick = onRightClick,
+            oneHandedMode = oneHandedMode,
+            onCycleOneHandedMode = onCycleOneHandedMode,
+            testTagPrefix = "btn_air_mouse",
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }

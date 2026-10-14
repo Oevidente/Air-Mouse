@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.CustomShortcut
 import com.example.ui.components.AddShortcutDialog
+import com.example.ui.components.KeyboardQuickBar
 import com.example.ui.components.VolumetricButton
 import com.example.ui.theme.BorderSubtle
 import com.example.ui.theme.EmeraldNeon
@@ -56,6 +57,7 @@ import com.example.ui.theme.TextSecondary
 fun ShortcutsScreen(
     shortcuts: List<CustomShortcut>,
     onSendKey: (String) -> Unit,
+    onSendText: (String) -> Unit = {},
     onAddShortcut: (CustomShortcut) -> Unit,
     onDeleteShortcut: (Long) -> Unit,
     modifier: Modifier = Modifier
@@ -118,6 +120,15 @@ fun ShortcutsScreen(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Integrated Remote Keyboard Quick Bar
+        KeyboardQuickBar(
+            onSendText = onSendText,
+            onSendKey = onSendKey,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 

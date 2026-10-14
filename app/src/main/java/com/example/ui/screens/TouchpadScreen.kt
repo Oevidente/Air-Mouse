@@ -16,15 +16,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.model.OneHandedMode
 import com.example.ui.components.IosCentralOrb
 import com.example.ui.components.IosGlassPillButton
 import com.example.ui.components.IosSensitivityCard
 import com.example.ui.components.IosTopBar
 import com.example.ui.components.MouseButtonHighlight
+import com.example.ui.components.OneHandedMouseButtons
 import com.example.ui.theme.AccentIceBlue
 import com.example.ui.theme.IosTextSecondary
 
@@ -39,24 +42,28 @@ fun TouchpadScreen(
     sensitivity: Float,
     onSensitivityChange: (Float) -> Unit,
     onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    oneHandedMode: OneHandedMode = OneHandedMode.OFF,
+    onCycleOneHandedMode: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = 14.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // 1. Top Bar
+        // 1. Top Bar with Connection and One-Handed selector
         IosTopBar(
             title = "Trackpad",
             isConnected = isConnected,
             onSettingsClick = onSettingsClick,
+            oneHandedMode = oneHandedMode,
+            onCycleOneHandedMode = onCycleOneHandedMode,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         // 2. Updated Sensitivity Card in matching iOS Liquid Glass design
         IosSensitivityCard(
@@ -83,10 +90,10 @@ fun TouchpadScreen(
                 onTap = onLeftClick,
                 onRightClick = onRightClick,
                 sensitivity = sensitivity,
-                sizeDp = 260.dp
+                sizeDp = 250.dp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -96,42 +103,27 @@ fun TouchpadScreen(
                     imageVector = Icons.Default.TouchApp,
                     contentDescription = "Gesto Trackpad",
                     tint = AccentIceBlue,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Text(
-                    text = "  1 dedo: mover/clicar  •  2 dedos: rolar página",
+                    text = "  1 dedo: mover/clicar  •  2 dedos: rolar",
                     color = IosTextSecondary,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
                 )
             }
         }
 
-        // 4. Bottom Giant Glass Pill Buttons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            IosGlassPillButton(
-                label = "Clique Esquerdo",
-                highlight = MouseButtonHighlight.LEFT,
-                onClick = onLeftClick,
-                heightDp = 145.dp,
-                testTag = "btn_trackpad_left_click",
-                modifier = Modifier.weight(1f)
-            )
-
-            IosGlassPillButton(
-                label = "Clique Direito",
-                highlight = MouseButtonHighlight.RIGHT,
-                onClick = onRightClick,
-                heightDp = 145.dp,
-                testTag = "btn_trackpad_right_click",
-                modifier = Modifier.weight(1f)
-            )
-        }
+        // 4. Ergonomic Mouse Buttons: Adapts to One-Handed Mode for large phones
+        OneHandedMouseButtons(
+            onLeftClick = onLeftClick,
+            onMiddleClick = onMiddleClick,
+            onRightClick = onRightClick,
+            oneHandedMode = oneHandedMode,
+            onCycleOneHandedMode = onCycleOneHandedMode,
+            testTagPrefix = "btn_trackpad",
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }

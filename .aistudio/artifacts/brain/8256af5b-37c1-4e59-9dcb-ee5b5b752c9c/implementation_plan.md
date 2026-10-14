@@ -1,105 +1,100 @@
-# Air Mouse - Correções de QA: Atalhos, Persistência, Apresentação e Identidade
+# Air Mouse - Teclado Integrado no Deck de Atalhos
 
-Plano de ação para atender integralmente ao relatório de QA: eliminação de atalhos duplicados com garantia de integridade, persistência total de preferências no armazenamento do dispositivo, controle opcional para apresentação de slides e padronização oficial do nome **Air Mouse**.
+Plano de implementação para adicionar funcionalidade completa de teclado remoto na aba de Atalhos & Macros do Air Mouse, permitindo digitação ágil (modo ao vivo ou envio em bloco) e teclas essenciais de navegação diretamente no celular para controle do PC.
 
 ### User Review & Critical Decisions
 
 > [!IMPORTANT]
 > **Decisões confirmadas pelo usuário:**
-> - **Controles de Apresentação de Slides**: Desativados por padrão. Um switch nas configurações ("Habilitar controles de apresentação de slides") permite ativá-los a qualquer momento.
-> - **Comportamento da Navegação**: Quando desativados, a aba de apresentação/mídia fica oculta da barra de navegação flutuante, deixando a interface limpa e focada no Air Mouse, Trackpad, Atalhos e PC.
-> - **Persistência das Configurações**: Todas as preferências (sensibilidade do giroscópio, sensibilidade do trackpad, inversão de eixos X/Y, feedback háptico, IP/portas do PC e o estado do switch de slides) serão salvas de maneira atômica e restauradas automaticamente na inicialização.
-> - **Identidade Oficial**: O aplicativo passa a se chamar oficialmente **Air Mouse** no sistema Android, no launcher, nas barras de título e nos metadados.
+> - **Interface do Teclado**: Barra rápida com campo de texto elegante e teclas essenciais posicionada no topo da aba de Atalhos, permitindo digitar sem esconder ou obstruir a grade de atalhos e macros.
+> - **Modo de Envio**: Modo duplo flexível — botão alternador permitindo escolher entre:
+>   - *Envio ao Vivo*: cada caractere ou palavra é transmitido em tempo real conforme digitado.
+>   - *Envio em Bloco*: digitação livre no campo com envio do texto completo ao tocar no botão Enviar ou pressionar Enter no teclado virtual.
+> - **Teclas Especiais & Rápidas**: Barra de chips tácteis com as teclas essenciais solicitadas: **Esc**, **Tab**, **Espaço**, **Backspace**, **Enter** e **Setas direcionais (▲, ▼, ◄, ►)**.
+> - **Versionamento & APK**: Incremento para `versionCode = 5` e `versionName = "1.0.4"`, gerando o arquivo executável `/apk/air-mouse-v1.0.4.apk` e `/apk/app-debug.apk`.
 
 ---
 
 ### 1. Overview & Core Concept
 
-O **Air Mouse** transforma o smartphone em um controlador remoto de alta precisão para computadores, utilizando os sensores inerciais (giroscópio) e conexões locais de baixa latência (UDP/TCP). Esta atualização foca na robustez das configurações, consistência de dados e refinamento da experiência do usuário, garantindo que o aplicativo mantenha todas as preferências definidas e apresente uma interface limpa e organizada.
+- **O que faz**: Adiciona um módulo de teclado interativo na tela `ShortcutsScreen` do Air Mouse. O usuário pode digitar mensagens, códigos, URLs ou comandos rapidamente e despachá-los para o PC, além de acionar teclas de navegação física (Esc, Tab, Enter, Backspace, Setas) com feedback háptico.
+- **Público-alvo**: Usuários que controlam o PC à distância (cama, sofá, apresentação) e precisam digitar termos de busca no YouTube/Netflix, navegar em formulários ou fechar janelas sem precisar levantar para ir ao teclado físico.
+- **Valor Principal**: Elimina a necessidade de alternar de tela para digitar, unindo o deck de macros e automação com digitação de texto direta e de baixíssima latência.
 
 ---
 
 ### 2. User Experience & Visual Design
 
-- **Experiência de Configurações (Aba PC / Conexão)**:
-  - Adição de novo cartão "Apresentação & Recursos" com switch dedicado: *Habilitar controles de apresentação de slides*.
-  - Indicação clara de status e persistência imediata ao alterar qualquer valor (sensibilidade, switches, IP ou portas).
-- **Barra de Navegação Adaptativa (`IosFloatingNavBar`)**:
-  - Quando os controles de apresentação estiverem desativados (padrão), a barra exibe 4 itens essenciais: **Air Mouse**, **Trackpad**, **Atalhos** e **PC**.
-  - Quando ativados pelo usuário, a aba **Mídia / Apresentação** é reintroduzida suavemente na barra.
-- **Deck de Atalhos e Macros Organizado**:
-  - Remoção de duplicidades visuais e estruturais.
-  - Grade com cada atalho listado uma única vez, categorizado e com layout consistente.
-- **Identidade Visual Consistente**:
-  - Nome visível no launcher do Android: **Air Mouse**.
-  - Título superior das telas principais e das configurações refletindo a marca oficial.
+- **Barra de Digitação Rápida (`KeyboardQuickBar`)**:
+  - Posicionada logo abaixo do cabeçalho de atalhos e acima das categorias de filtros.
+  - Campo de texto translúcido com estilo dark glassmorphic, bordas sutis neon (`EmeraldNeon` ou `BorderSubtle`) e cantos arredondados de 14.dp.
+  - Ícone de teclado à esquerda com indicação de foco.
+  - Botão de envio rápido estilizado com ícone `Send` e botão de limpar campo (`Clear`).
+  - Switch/Pill seletor discreto para alternar entre modo **"Ao Vivo"** (Live) e **"Bloco"** (Ao Enviar).
+- **Fileira de Teclas Essenciais (`QuickKeysToolbar`)**:
+  - Fileira horizontal com rolagem suave contendo botões tácteis compactos estilo chave mecânica:
+    - `[ ESC ]` `[ TAB ]` `[ ESPAÇO ]` `[ ⌫ BACKSPACE ]` `[ ⏎ ENTER ]`
+    - Bloco direcional: `[ ◄ ]` `[ ▲ ]` `[ ▼ ]` `[ ► ]`
+  - Feedback tátil com vibração háptica (`hapticManager.click()`) a cada toque.
+- **Ajuste Ergonômico Mobile**:
+  - Campo compatível com `imeAction = ImeAction.Send` para que o próprio botão Enter do teclado do Android faça o envio do texto em bloco.
+  - A grade de atalhos e macros continua acessível logo abaixo, rolando suavemente quando o teclado virtual é aberto (`imePadding` ou rolagem fluida).
 
 ---
 
 ### 3. Key Product Decisions & Trade-Offs
 
-- **Deduplicação de Atalhos (Causa Raiz & Solução)**:
-  - *Causa*: O banco Room possuía inserção assíncrona duplicada no callback `onCreate` do banco combinada com chamada redundante em `ensureDefaultShortcuts()` no `init` do ViewModel, sem restrição de unicidade.
-  - *Solução*: Unificar a carga inicial garantindo idempotência e adicionar rotina de deduplicação na inicialização do repositório para limpar quaisquer registros duplicados preexistentes, mantendo apenas 1 ocorrência por combinação de comando/título.
-- **Mecanismo de Persistência das Configurações**:
-  - *Abordagem*: Criar camada de persistência local dedicada (`UserPreferencesRepository` / `SharedPreferences`) para armazenar:
-    - Sensibilidade do giroscópio (`gyroSensitivity`)
-    - Sensibilidade do touchpad (`touchpadSensitivity`)
-    - Inversão de eixo X (`invertX`) e eixo Y (`invertY`)
-    - Feedback háptico (`hapticsEnabled`)
-    - Exibição de controles de apresentação (`showPresentationControls`)
-    - Último IP e portas configurados (`serverIp`, `udpPort`, `tcpPort`)
-  - *Vantagem*: Acesso síncrono instantâneo no arranque do app (sem delay de leitura), sem consumo de cotas de rede ou banco em nuvem, e sobrevivência total a reinicializações e updates.
-- **Compatibilidade e Versionamento**:
-  - Incremento de versão para `versionCode = 4` e `versionName = "1.0.3"`.
-  - Geração da APK atualizada salva na pasta `/apk/` (`air-mouse-v1.0.3.apk` e `app-debug.apk`).
+- **Posicionamento na Aba de Atalhos**:
+  - *Abordagem*: Integrar a barra rápida diretamente no topo de `ShortcutsScreen`, com visual compacto e retrátil/expansível caso o usuário queira minimizar para focar apenas na grade de macros.
+  - *Por quê*: Proporciona acesso imediato sem adicionar mais uma aba na barra inferior de navegação móvel, mantendo a navegação limpa e fluida.
+- **Protocolo de Comunicação de Texto**:
+  - *Abordagem*: Reutilizar o método `sendText(text)` (payload TCP `{"t":"type","text":"..."}`) já implementado com sucesso no cliente Android e suportado por `botanika_receiver.py` (`pyautogui.write` / `keyboard.type`), além de disparar `sendKey(combo)` para teclas individuais (`esc`, `tab`, `space`, `backspace`, `enter`, `up`, `down`, `left`, `right`).
+  - *Por quê*: Garante latência mínima, total compatibilidade com o servidor receptor existente e zero consumo de serviços externos ou nuvem.
+- **Geração de APK e Versionamento**:
+  - *Abordagem*: Atualizar `build.gradle.kts` para versão `1.0.4` (code 5) e compilar APK salvando na pasta `/apk/`.
 
 ---
 
 ### 4. Technical Architecture & Data Strategy
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Air Mouse UI (Jetpack Compose)                  │
-└──────────────┬───────────────────────────┬─────────────────────────────┘
-               │                           │
-       ┌───────▼────────┐         ┌────────▼────────────────┐
-       │   Air Mouse    │         │ Configurações / PC      │
-       │   & Trackpad   │         │ (Switches, Sensib., IP) │
-       └───────┬────────┘         └────────┬────────────────┘
-               │                           │
-               └─────────────┬─────────────┘
-                             │
-                    ┌────────▼────────┐
-                    │ RemoteViewModel │
-                    └────┬────────┬───┘
-                         │        │
-         ┌───────────────┘        └─────────────────┐
-         ▼                                          ▼
-┌─────────────────────────────┐        ┌───────────────────────────────┐
-│     UserPreferences         │        │       BotanikaDatabase        │
-│ (Sensibilidade, Inversão,   │        │     (Atalhos Únicos &         │
-│  Haptics, Apresentação ON)  │        │      Histórico de PCs)        │
-└─────────────────────────────┘        └───────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      ShortcutsScreen                        │
+├─────────────────────────────────────────────────────────────┤
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  Top Header: DECK DE ATALHOS & MACROS + [+ Novo]      │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  KeyboardQuickBar (Novo Módulo de Teclado)            │  │
+│  │  [⌨ Digitar no PC...] [Toggle: Ao Vivo/Bloco] [Enviar] │  │
+│  │  QuickKeysRow: [Esc] [Tab] [Space] [⌫] [⏎] [◄ ▲ ▼ ►]   │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  CategoryFilterChips (Todos, Apresentação, Mídia...)  │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  LazyVerticalGrid (Grade de Cartões de Atalhos)       │  │
+│  └───────────────────────────────────────────────────────┘  │
+└───────────────────────────────┬─────────────────────────────┘
+                                │ onSendText / onSendKey
+                                ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      RemoteViewModel                        │
+│   sendText(text) ───► remoteClient.sendText(text) [TCP]     │
+│   sendKey(combo) ───► remoteClient.sendKey(combo) [TCP]     │
+└───────────────────────────────┬─────────────────────────────┘
+                                │ Socket TCP (Port 5006)
+                                ▼
+┌─────────────────────────────────────────────────────────────┐
+│             PC: botanika_receiver.py / air_mouse            │
+│   t: "type"  ──► pyautogui.write(text) / keyboard.type()    │
+│   t: "key"   ──► KEY_MAP["esc", "tab", "space", "enter"]    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### Mapeamento de Modificações por Módulo:
-
-1. **Persistência de Preferências**:
-   - Criar `UserPreferencesManager.kt` para persistir e carregar todas as opções do usuário.
-   - Atualizar `RemoteViewModel.kt` para carregar as preferências no arranque e sincronizar imediatamente a cada alteração.
-2. **Deduplicação de Atalhos**:
-   - Corrigir `BotanikaDatabase.kt` e `RemoteRepository.kt` eliminando concorrência de seeding.
-   - Adicionar método `deduplicateShortcuts()` que remove itens repetidos do banco SQLite local preservando atalhos customizados.
-3. **Controles de Apresentação Opcionais**:
-   - Adicionar flag `showPresentationControls: Boolean = false` no estado do ViewModel e na persistência.
-   - Atualizar `ConnectionSettingsScreen.kt` com Switch para habilitar/desabilitar controles de slides.
-   - Atualizar `IosFloatingNavBar.kt` e `MainActivity.kt` para exibir ou ocultar a aba de Mídia condicionalmente conforme a preferência.
-4. **Renomeação para "Air Mouse"**:
-   - `app/src/main/res/values/strings.xml`: `<string name="app_name">Air Mouse</string>`
-   - `metadata.json`: `"name": "Air Mouse"`
-   - `settings.gradle.kts`: `rootProject.name = "Air Mouse"`
-   - Textos da interface que referenciam o nome anterior.
-5. **Build, Testes e Geração de APK**:
-   - Atualizar versão no `app/build.gradle.kts` para `versionCode = 4` e `versionName = "1.0.2"` -> `"1.0.3"`.
-   - Executar `compile_applet` para validação e salvar a APK gerada em `/apk/air-mouse-v1.0.3.apk`.
+#### Modificações de Arquivos Planejadas:
+1. `app/src/main/java/com/example/ui/components/KeyboardQuickBar.kt`: Novo componente com visual glassmorphic contendo o campo de texto, botão de envio, chave de alternância ao vivo/bloco e atalhos rápidos tácteis (`esc`, `tab`, `space`, `backspace`, `enter`, setas).
+2. `app/src/main/java/com/example/ui/screens/ShortcutsScreen.kt`: Integração de `KeyboardQuickBar` no topo da tela, repassando `onSendText` e `onSendKey`.
+3. `app/src/main/java/com/example/MainActivity.kt`: Passagem de `viewModel.sendText(it)` para o `ShortcutsScreen`.
+4. `app/build.gradle.kts`: Atualização de `versionCode = 5` e `versionName = "1.0.4"`.
+5. Compilação e cópia do novo APK para `/apk/air-mouse-v1.0.4.apk` e `/apk/app-debug.apk`.

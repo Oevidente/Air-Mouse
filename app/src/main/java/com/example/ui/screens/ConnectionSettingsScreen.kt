@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.PanTool
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Slideshow
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.model.OneHandedMode
 import com.example.data.model.RemoteServer
 import com.example.network.PythonReceiverCode
 import com.example.ui.theme.AccentBlue
@@ -88,6 +90,7 @@ fun ConnectionSettingsScreen(
     invertY: Boolean,
     hapticsEnabled: Boolean,
     showPresentationControls: Boolean,
+    oneHandedMode: OneHandedMode = OneHandedMode.OFF,
     onSaveSettings: (ip: String, udp: Int, tcp: Int) -> Unit,
     onTestConnection: () -> Unit,
     onUpdateSensitivities: (gyro: Float, touch: Float) -> Unit,
@@ -95,6 +98,7 @@ fun ConnectionSettingsScreen(
     onToggleInvertY: () -> Unit,
     onToggleHaptics: () -> Unit,
     onTogglePresentationControls: (Boolean) -> Unit,
+    onSetOneHandedMode: (OneHandedMode) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -492,6 +496,91 @@ fun ConnectionSettingsScreen(
                     onCheckedChange = { onToggleHaptics() },
                     colors = SwitchDefaults.colors(checkedThumbColor = EmeraldNeon, checkedTrackColor = EmeraldNeon.copy(alpha = 0.3f))
                 )
+            }
+        }
+
+        // Ergonomia & Modo Uma Mão
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(ChassisSurface)
+                .border(1.2.dp, BorderSubtle, RoundedCornerShape(20.dp))
+                .padding(18.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PanTool,
+                    contentDescription = "Ergonomia",
+                    tint = EmeraldNeon,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Ergonomia & Modo Uma Mão",
+                    color = TextPrimary,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Adapta a posição da barra de scroll e o arranjo dos botões do mouse para facilitar o uso apenas com o polegar.",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val modes = listOf(
+                    Triple(OneHandedMode.OFF, "Padrão", "Ambas as mãos"),
+                    Triple(OneHandedMode.RIGHT_HAND, "Destro", "Mão direita"),
+                    Triple(OneHandedMode.LEFT_HAND, "Canhoto", "Mão esquerda")
+                )
+
+                modes.forEach { (mode, title, desc) ->
+                    val isSelected = oneHandedMode == mode
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (isSelected) EmeraldNeon.copy(alpha = 0.2f) else KeyBaseGradientEnd)
+                            .border(
+                                1.2.dp,
+                                if (isSelected) EmeraldNeon else BorderSubtle,
+                                RoundedCornerShape(14.dp)
+                            )
+                            .clickable { onSetOneHandedMode(mode) }
+                            .padding(vertical = 12.dp, horizontal = 6.dp)
+                            .testTag("btn_mode_${mode.name.lowercase()}"),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = title,
+                                color = if (isSelected) EmeraldNeon else TextPrimary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = desc,
+                                color = if (isSelected) EmeraldNeon.copy(alpha = 0.8f) else TextMuted,
+                                fontSize = 9.sp
+                            )
+                        }
+                    }
+                }
             }
         }
 

@@ -194,6 +194,69 @@ def execute_key_combo(combo_str):
     except Exception as e:
         print(f"[Aviso] Falha ao executar tecla: {combo_str} -> {e}")
 
+def write_unicode_text(text):
+    if not text:
+        return
+    try:
+        is_ascii = all(ord(c) < 128 for c in text)
+        if is_ascii:
+            if PYNPUT_AVAILABLE:
+                keyboard.type(text)
+                return
+            elif PYAUTOGUI_AVAILABLE:
+                pyautogui.write(text)
+                return
+
+        copied = False
+        try:
+            import pyperclip
+            pyperclip.copy(text)
+            copied = True
+        except Exception:
+            try:
+                if sys.platform == "win32":
+                    import ctypes
+                    CF_UNICODETEXT = 13
+                    user32 = ctypes.windll.user32
+                    kernel32 = ctypes.windll.kernel32
+                    if user32.OpenClipboard(0):
+                        user32.EmptyClipboard()
+                        encoded = text.encode("utf-16le") + b"\x00\x00"
+                        h_mem = kernel32.GlobalAlloc(0x0042, len(encoded))
+                        p_mem = kernel32.GlobalLock(h_mem)
+                        ctypes.cdll.msvcrt.memcpy(ctypes.c_void_p(p_mem), encoded, len(encoded))
+                        kernel32.GlobalUnlock(h_mem)
+                        user32.SetClipboardData(CF_UNICODETEXT, h_mem)
+                        user32.CloseClipboard()
+                        copied = True
+            except Exception:
+                pass
+
+        if copied:
+            time.sleep(0.01)
+            if PYNPUT_AVAILABLE:
+                keyboard.press(Key.ctrl)
+                keyboard.press('v')
+                time.sleep(0.01)
+                keyboard.release('v')
+                keyboard.release(Key.ctrl)
+            elif PYAUTOGUI_AVAILABLE:
+                pyautogui.hotkey('ctrl', 'v')
+            return
+    except Exception:
+        pass
+
+    if PYNPUT_AVAILABLE:
+        try:
+            keyboard.type(text)
+        except Exception:
+            pass
+    elif PYAUTOGUI_AVAILABLE:
+        try:
+            pyautogui.write(text)
+        except Exception:
+            pass
+
 def udp_server_loop():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("0.0.0.0", UDP_PORT))
@@ -230,10 +293,7 @@ def handle_tcp_client(client_sock, client_addr):
                         client_sock.sendall(b'{"t":"ack"}\n')
                     elif t == "type":
                         text = msg.get("text", "")
-                        if PYAUTOGUI_AVAILABLE:
-                            pyautogui.write(text)
-                        elif PYNPUT_AVAILABLE:
-                            keyboard.type(text)
+                        write_unicode_text(text)
                         client_sock.sendall(b'{"t":"ack"}\n')
                 except Exception:
                     pass

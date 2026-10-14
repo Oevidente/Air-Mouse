@@ -7,6 +7,7 @@ import com.example.data.local.BotanikaDatabase
 import com.example.data.local.UserPreferencesManager
 import com.example.data.model.AirMouseMode
 import com.example.data.model.CustomShortcut
+import com.example.data.model.OneHandedMode
 import com.example.data.model.RemoteServer
 import com.example.data.model.RemoteTab
 import com.example.data.repository.RemoteRepository
@@ -38,6 +39,7 @@ data class RemoteUiState(
     val invertX: Boolean = false,
     val invertY: Boolean = false,
     val showPresentationControls: Boolean = false,
+    val oneHandedMode: OneHandedMode = OneHandedMode.OFF,
     val gyroTiltX: Float = 0f,
     val gyroTiltY: Float = 0f,
     val isGyroAvailable: Boolean = true,
@@ -70,7 +72,8 @@ class RemoteViewModel(application: Application) : AndroidViewModel(application) 
             invertY = preferencesManager.invertY,
             hapticsEnabled = preferencesManager.hapticsEnabled,
             airMouseMode = preferencesManager.airMouseMode,
-            showPresentationControls = preferencesManager.showPresentationControls
+            showPresentationControls = preferencesManager.showPresentationControls,
+            oneHandedMode = preferencesManager.oneHandedMode
         )
     )
     val uiState: StateFlow<RemoteUiState> = _uiState.asStateFlow()
@@ -331,6 +334,21 @@ class RemoteViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             repository.deleteShortcut(id)
         }
+    }
+
+    fun setOneHandedMode(mode: OneHandedMode) {
+        preferencesManager.oneHandedMode = mode
+        _uiState.update { it.copy(oneHandedMode = mode) }
+        hapticManager.click()
+    }
+
+    fun cycleOneHandedMode() {
+        val next = when (_uiState.value.oneHandedMode) {
+            OneHandedMode.OFF -> OneHandedMode.RIGHT_HAND
+            OneHandedMode.RIGHT_HAND -> OneHandedMode.LEFT_HAND
+            OneHandedMode.LEFT_HAND -> OneHandedMode.OFF
+        }
+        setOneHandedMode(next)
     }
 
     override fun onCleared() {

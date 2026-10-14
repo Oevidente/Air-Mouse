@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PanTool
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +33,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.model.OneHandedMode
 import com.example.ui.theme.AccentIceBlue
+import com.example.ui.theme.EmeraldNeon
 import com.example.ui.theme.GlassRimHighlight
 import com.example.ui.theme.GlassRimShadow
 import com.example.ui.theme.IosTextPrimary
@@ -44,7 +47,9 @@ fun IosTopBar(
     title: String,
     isConnected: Boolean,
     onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    oneHandedMode: OneHandedMode = OneHandedMode.OFF,
+    onCycleOneHandedMode: (() -> Unit)? = null
 ) {
     val shape = RoundedCornerShape(32.dp)
 
@@ -110,19 +115,63 @@ fun IosTopBar(
             }
         }
 
-        // Settings Gear Icon
-        IconButton(
-            onClick = onSettingsClick,
-            modifier = Modifier
-                .size(36.dp)
-                .testTag("btn_top_settings")
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Configurações",
-                tint = IosTextSecondary,
-                modifier = Modifier.size(20.dp)
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onCycleOneHandedMode != null) {
+                val handLabel = when (oneHandedMode) {
+                    OneHandedMode.OFF -> "Ambas"
+                    OneHandedMode.RIGHT_HAND -> "Destro"
+                    OneHandedMode.LEFT_HAND -> "Canhoto"
+                }
+                val isCustomHand = oneHandedMode != OneHandedMode.OFF
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isCustomHand) EmeraldNeon.copy(alpha = 0.2f) else Color(0xFF1E2838).copy(alpha = 0.6f))
+                        .border(
+                            1.dp,
+                            if (isCustomHand) EmeraldNeon else GlassRimHighlight.copy(alpha = 0.3f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .clickable(onClick = onCycleOneHandedMode)
+                        .padding(horizontal = 8.dp, vertical = 5.dp)
+                        .testTag("btn_cycle_one_handed_topbar"),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.PanTool,
+                            contentDescription = "Modo Uma Mão",
+                            tint = if (isCustomHand) EmeraldNeon else IosTextSecondary,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = handLabel,
+                            color = if (isCustomHand) EmeraldNeon else IosTextSecondary,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+
+            // Settings Gear Icon
+            IconButton(
+                onClick = onSettingsClick,
+                modifier = Modifier
+                    .size(36.dp)
+                    .testTag("btn_top_settings")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Configurações",
+                    tint = IosTextSecondary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

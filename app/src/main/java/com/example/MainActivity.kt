@@ -109,11 +109,15 @@ class MainActivity : ComponentActivity() {
                                             gyroSensitivity = uiState.gyroSensitivity,
                                             tiltX = uiState.gyroTiltX,
                                             tiltY = uiState.gyroTiltY,
+                                            oneHandedMode = uiState.oneHandedMode,
                                             onToggleAirMouse = { viewModel.toggleAirMouse() },
                                             onRecalibrate = { viewModel.recalibrateGyro() },
                                             onSensitivityChange = { viewModel.updateSensitivities(it, uiState.touchpadSensitivity) },
                                             onLeftClick = { viewModel.onLeftClick() },
+                                            onMiddleClick = { viewModel.onMiddleClick() },
                                             onRightClick = { viewModel.onRightClick() },
+                                            onScroll = { dy, dx -> viewModel.onScroll(dy, dx) },
+                                            onCycleOneHandedMode = { viewModel.cycleOneHandedMode() },
                                             onSettingsClick = { viewModel.setTab(RemoteTab.CONNECTION_SETTINGS) }
                                         )
                                     }
@@ -132,10 +136,12 @@ class MainActivity : ComponentActivity() {
                                             onMove = { dx, dy -> viewModel.onMouseMove(dx, dy) },
                                             onScroll = { dy, dx -> viewModel.onScroll(dy, dx) },
                                             onLeftClick = { viewModel.onLeftClick() },
-                                            onRightClick = { viewModel.onRightClick() },
                                             onMiddleClick = { viewModel.onMiddleClick() },
+                                            onRightClick = { viewModel.onRightClick() },
                                             sensitivity = uiState.touchpadSensitivity,
                                             onSensitivityChange = { viewModel.updateSensitivities(uiState.gyroSensitivity, it) },
+                                            oneHandedMode = uiState.oneHandedMode,
+                                            onCycleOneHandedMode = { viewModel.cycleOneHandedMode() },
                                             onSettingsClick = { viewModel.setTab(RemoteTab.CONNECTION_SETTINGS) }
                                         )
                                     }
@@ -144,6 +150,7 @@ class MainActivity : ComponentActivity() {
                                         ShortcutsScreen(
                                             shortcuts = uiState.shortcuts,
                                             onSendKey = { viewModel.sendKey(it) },
+                                            onSendText = { viewModel.sendText(it) },
                                             onAddShortcut = { viewModel.addCustomShortcut(it) },
                                             onDeleteShortcut = { viewModel.deleteShortcut(it) }
                                         )
@@ -165,13 +172,15 @@ class MainActivity : ComponentActivity() {
                                             invertY = uiState.invertY,
                                             hapticsEnabled = uiState.hapticsEnabled,
                                             showPresentationControls = uiState.showPresentationControls,
+                                            oneHandedMode = uiState.oneHandedMode,
                                             onSaveSettings = { ip, udp, tcp -> viewModel.updateServerSettings(ip, udp, tcp) },
                                             onTestConnection = { viewModel.testConnection() },
                                             onUpdateSensitivities = { gyro, touch -> viewModel.updateSensitivities(gyro, touch) },
                                             onToggleInvertX = { viewModel.toggleInvertX() },
                                             onToggleInvertY = { viewModel.toggleInvertY() },
                                             onToggleHaptics = { viewModel.toggleHaptics() },
-                                            onTogglePresentationControls = { viewModel.togglePresentationControls(it) }
+                                            onTogglePresentationControls = { viewModel.togglePresentationControls(it) },
+                                            onSetOneHandedMode = { viewModel.setOneHandedMode(it) }
                                         )
                                     }
                                 }

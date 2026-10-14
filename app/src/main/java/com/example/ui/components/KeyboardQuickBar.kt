@@ -43,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.example.ui.theme.AccentIceBlue
 import com.example.ui.theme.BorderSubtle
 import com.example.ui.theme.EmeraldNeon
@@ -78,6 +82,8 @@ fun KeyboardQuickBar(
     var isLiveMode by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(true) }
     var sendOnSpace by remember { mutableStateOf(true) }
+    var pendingSpaceSend by remember { mutableStateOf<Job?>(null) }
+    val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
     Column(
@@ -138,7 +144,10 @@ fun KeyboardQuickBar(
                         .clip(RoundedCornerShape(10.dp))
                         .background(GlassSurfaceTop)
                         .border(1.dp, if (isLiveMode) EmeraldNeon else BorderSubtle, RoundedCornerShape(10.dp))
-                        .clickable { isLiveMode = !isLiveMode }
+                        .clickable {
+                            pendingSpaceSend?.cancel()
+                            isLiveMode = !isLiveMode
+                        }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                         .testTag("toggle_keyboard_mode_button")
                 ) {
@@ -193,6 +202,8 @@ fun KeyboardQuickBar(
                     OutlinedTextField(
                         value = textInput,
                         onValueChange = { newText ->
+                            val previousText = textInput
+                            pendingSpaceSend?.cancel()
                             if (isLiveMode) {
                                 val oldText = textInput
                                 // Calculate common prefix to correctly handle Gboard autocorrection,
@@ -215,12 +226,16 @@ fun KeyboardQuickBar(
                                 }
                                 textInput = newText
                             } else {
-                                // Block mode: if sendOnSpace is enabled and user typed space at the end of an autocorrected word
-                                if (sendOnSpace && newText.endsWith(" ") && newText.length > textInput.length && newText.trim().isNotEmpty()) {
-                                    onSendText(newText)
-                                    textInput = ""
-                                } else {
-                                    textInput = newText
+                                textInput = newText
+                                if (sendOnSpace && newText.endsWith(" ") && newText != previousText && newText.trim().isNotEmpty()) {
+                                    pendingSpaceSend = coroutineScope.launch {
+                                        delay(500)
+                                        val textToSend = textInput
+                                        if (sendOnSpace && textToSend.endsWith(" ") && textToSend.trim().isNotEmpty()) {
+                                            onSendText(textToSend)
+                                            textInput = ""
+                                        }
+                                    }
                                 }
                             }
                         },
@@ -241,6 +256,7 @@ fun KeyboardQuickBar(
                         keyboardActions = KeyboardActions(
                             onSend = {
                                 if (textInput.isNotBlank()) {
+                                    pendingSpaceSend?.cancel()
                                     onSendText(textInput)
                                     textInput = ""
                                     focusManager.clearFocus()
@@ -250,7 +266,10 @@ fun KeyboardQuickBar(
                         trailingIcon = {
                             if (textInput.isNotEmpty()) {
                                 IconButton(
-                                    onClick = { textInput = "" },
+                                    onClick = {
+                                        pendingSpaceSend?.cancel()
+                                        textInput = ""
+                                    },
                                     modifier = Modifier.size(24.dp)
                                 ) {
                                     Icon(
@@ -286,6 +305,7 @@ fun KeyboardQuickBar(
                                 onSendKey("enter")
                             } else {
                                 if (textInput.isNotBlank()) {
+                                    pendingSpaceSend?.cancel()
                                     onSendText(textInput)
                                     textInput = ""
                                 } else {
@@ -338,7 +358,10 @@ fun KeyboardQuickBar(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .clickable { sendOnSpace = !sendOnSpace }
+                                .clickable {
+                                    pendingSpaceSend?.cancel()
+                                    sendOnSpace = !sendOnSpace
+                                }
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                         ) {
                             Text(
